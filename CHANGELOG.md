@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- **fix(installer)**: `install.sh` was published empty in 0.4.0, so the one-line install did nothing. It is restored, and a new installer self-test runs the real script against a throwaway home.
+
 ## 0.4.0 — first public release
 
 - **capture**: review-grade screenshots at true device widths, full pages stitched from viewport slices, a reduced-motion still record, waiting for animations to finish, GPU WebGL, and validity checks.
