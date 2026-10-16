@@ -10,7 +10,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node test/run.mjs && node test/adopt.mjs && node test/learn.mjs && node test/adapters.mjs"
+    "test": "node test/run.mjs && node test/adopt.mjs && node test/learn.mjs && node test/adapters.mjs && node test/install.mjs"
   },
   "license": "MIT",
   "private": true,
