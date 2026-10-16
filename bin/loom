@@ -1,0 +1,3 @@
+#!/bin/sh
+# Launcher so `loom` resolves on PATH (Claude Code adds a plugin's bin/ to it).
+exec node "$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")/loom.mjs" "$@"
