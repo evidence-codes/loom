@@ -1,0 +1,298 @@
+[
+  {
+    "id": "next-font-variable-on-html",
+    "rule": "Put next/font variable classes on <html> when a plain Tailwind v4 @theme reads them (or use @theme inline).",
+    "why": "@theme resolves var() at :root; a variable set on <body> is undefined there and the font silently falls back to the system stack.",
+    "category": "stack",
+    "source": "review",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "incumbent: Geist loaded, 100% of text rendered in ui-sans-serif"
+      },
+      {
+        "project": "landing-page-a",
+        "note": "redesign: Geologica/JetBrains never applied until moved to <html>"
+      }
+    ],
+    "check": {
+      "scope": "project",
+      "ext": [
+        ".tsx",
+        ".jsx",
+        ".css"
+      ],
+      "all": [
+        "@theme\\s*\\{[^}]*var\\(--font-",
+        "<body[^>]*\\$\\{\\w+\\.variable\\}"
+      ],
+      "none": [
+        "<html[^>]*\\$\\{\\w+\\.variable\\}",
+        "@theme\\s+inline"
+      ],
+      "message": "next/font variable set on <body> but read by a plain @theme at :root"
+    }
+  },
+  {
+    "id": "framer-pathlength-kills-dashes",
+    "rule": "Never animate pathLength on a path that must stay dashed; reveal the dashed path through an animated mask instead.",
+    "why": "Framer Motion's pathLength writes its own stroke-dasharray and overrides yours, so a dashed plan renders solid.",
+    "category": "motion",
+    "source": "review",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "redesign: hero planned course rendered solid"
+      }
+    ],
+    "check": {
+      "ext": [
+        ".tsx",
+        ".jsx"
+      ],
+      "all": [
+        "<motion\\.path[^>]*?strokeDasharray[^>]*?(pathLength|\\.\\.\\.draw)|<motion\\.path[^>]*?(pathLength|\\.\\.\\.draw)[^>]*?strokeDasharray"
+      ],
+      "message": "motion.path with both strokeDasharray and a pathLength animation"
+    }
+  },
+  {
+    "id": "no-reduced-motion-branch-in-render",
+    "rule": "Keep the same initial/animate props on server and client; under reduced motion collapse the transition to zero instead of branching the props.",
+    "why": "useReducedMotion is null on the server; branching initial={false} on the client causes a hydration mismatch that can leave paths undrawn.",
+    "category": "motion",
+    "source": "self",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "redesign: hero course missing under reduced motion; hydration warning"
+      }
+    ],
+    "check": {
+      "ext": [
+        ".tsx",
+        ".jsx"
+      ],
+      "all": [
+        "useReducedMotion\\(\\)",
+        "\\?\\s*\\{\\s*initial:\\s*false"
+      ],
+      "message": "initial/animate props branch on useReducedMotion during render"
+    }
+  },
+  {
+    "id": "tailwind-v3-var-colour-opacity",
+    "rule": "In Tailwind v3, define theme colours as hex (or rgb channels), not var(--x), if opacity modifiers like bg-x/50 are used.",
+    "why": "Tailwind v3 cannot apply an alpha modifier to an opaque CSS variable, so bg-x/50 generates nothing.",
+    "category": "stack",
+    "source": "self",
+    "evidence": [
+      {
+        "project": "portfolio-site",
+        "note": "mobile overlay and header backgrounds did not render"
+      }
+    ],
+    "check": {
+      "scope": "project",
+      "ext": [
+        ".js",
+        ".ts",
+        ".tsx",
+        ".jsx",
+        ".css"
+      ],
+      "all": [
+        "colors\\s*:[\\s\\S]{0,800}?[\"']var\\(--",
+        "\\b(bg|text|border)-[a-z][\\w-]*\\/\\d{1,3}\\b"
+      ],
+      "none": [
+        "@import\\s+[\"']tailwindcss[\"']"
+      ],
+      "message": "Tailwind v3 theme colours defined as var(--…) while opacity modifiers are used"
+    }
+  },
+  {
+    "id": "tailwind-v4-config-not-loaded",
+    "rule": "Under Tailwind v4, keep tokens in @theme; a tailwind.config file does nothing without an @config line.",
+    "why": "An inherited landing page's whole theme (primary, accent, surface, Inter) was dead, and the utilities that named it generated no CSS.",
+    "category": "stack",
+    "source": "adopt",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "incumbent: loom adopt finding"
+      }
+    ]
+  },
+  {
+    "id": "no-kicker-labels",
+    "rule": "No small label, eyebrow or kicker above a heading; let the heading carry it, or make the label the heading.",
+    "why": "Reviewers flagged it on three different sites; it is the most reliable sign of a templated page.",
+    "category": "craft",
+    "source": "review",
+    "evidence": [
+      {
+        "project": "portfolio-site",
+        "note": "category tag above project titles"
+      },
+      {
+        "project": "landing-page-a",
+        "note": "redesign: mode label above mode heading; small green label above answers"
+      },
+      {
+        "project": "product-launch-page",
+        "note": "eyebrow removed in fix round"
+      }
+    ]
+  },
+  {
+    "id": "pin-content-to-the-world",
+    "rule": "Lay content out in the committed world's structure; an equal grid of icon + heading + text in a box is still a card grid.",
+    "why": "Both redesigns first shipped a 2x2 or 3-column card grid inside a strong world and were sent back for it.",
+    "category": "craft",
+    "source": "review",
+    "evidence": [
+      {
+        "project": "portfolio-site",
+        "note": "How I work three-column triplet; project cards"
+      },
+      {
+        "project": "landing-page-a",
+        "note": "redesign: squalls and legend grids"
+      }
+    ]
+  },
+  {
+    "id": "placeholder-actions-look-inert",
+    "rule": "An action without a destination must look inert and say why; never give it the primary style.",
+    "why": "Green 'link coming' store buttons still read as live; neutral outline plus a plain line fixed it.",
+    "category": "copy",
+    "source": "review",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "redesign: store buttons before links exist"
+      }
+    ]
+  },
+  {
+    "id": "world-devices-must-be-true",
+    "rule": "Devices borrowed from a real system must obey it: coordinates stop at 59 minutes, charts read like charts, numbers are plausible.",
+    "why": "A decorative coordinate scale counted to 06°112′N and the reviewer called it a false statement.",
+    "category": "copy",
+    "source": "review",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "redesign: coordinate scale"
+      }
+    ]
+  },
+  {
+    "id": "no-unsourced-claims",
+    "rule": "Remove rankings, counts and endorsements the evidence cannot back; record their absence in PRODUCT.md.",
+    "why": "An inherited page claimed '#1 Productivity Software' with no source; PRODUCT.md now forbids repeating it.",
+    "category": "copy",
+    "source": "adopt",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "incumbent"
+      }
+    ]
+  },
+  {
+    "id": "decorative-text-off-content",
+    "rule": "Keep decorative text (soundings, scale labels, watermarks) out of the area content occupies, at every breakpoint.",
+    "why": "Soundings under the headline and scale labels under a panel were flagged as text occlusion.",
+    "category": "craft",
+    "source": "review",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "redesign: hero soundings, coordinate labels"
+      }
+    ]
+  },
+  {
+    "id": "reserve-space-for-art-on-phones",
+    "rule": "On phones, give hero art its own space in the flow; don't overlay it on copy that is anchored to the bottom.",
+    "why": "When the font loaded, the copy grew and the headline climbed over the absolutely positioned chart band.",
+    "category": "responsive",
+    "source": "review",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "redesign: mobile hero"
+      }
+    ]
+  },
+  {
+    "id": "verify-the-still-record",
+    "rule": "Review the reduced-motion still record as a page in its own right, not only the motion version.",
+    "why": "A product page's pinned chapters overlapped under reduced motion; every review had looked only at motion-on captures.",
+    "category": "a11y",
+    "source": "self",
+    "evidence": [
+      {
+        "project": "product-launch-page",
+        "note": "found by loom capture, still unfixed"
+      }
+    ]
+  },
+  {
+    "id": "capture-with-loom",
+    "rule": "Take review screenshots with loom capture, never a tall-window screenshot or a cropped wide window.",
+    "why": "Tall windows stretch 100vh heroes, desktop Chrome cannot go below ~500px, and reveals get caught mid-fade.",
+    "category": "process",
+    "source": "self",
+    "evidence": [
+      {
+        "project": "portfolio-site"
+      },
+      {
+        "project": "landing-page-a",
+        "note": "redesign"
+      }
+    ]
+  },
+  {
+    "id": "hooks-need-stdin",
+    "rule": "When running a Claude Code hook script by hand, pipe its JSON input on stdin.",
+    "why": "A SessionStart security hook run bare waited on stdin and hung for minutes in the background.",
+    "category": "process",
+    "source": "self",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "redesign"
+      }
+    ]
+  },
+  {
+    "id": "install-only-with-consent",
+    "rule": "Ask before installing; reinstall with npm ci --ignore-scripts from the lockfile and scan node_modules for worm markers before running anything.",
+    "why": "npm installs execute third-party code; a supply-chain worm spread this way in Sep 2026.",
+    "category": "process",
+    "source": "user",
+    "evidence": [
+      {
+        "project": "landing-page-a",
+        "note": "redesign"
+      }
+    ]
+  },
+  {
+    "id": "never-commit-literal-worm-markers",
+    "rule": "Never put the worm's literal loader strings in source, even in tests; assemble them at runtime.",
+    "why": "A test fixture string would have made a session security hook flag loom itself as infected.",
+    "category": "process",
+    "source": "self",
+    "evidence": [
+      {
+        "project": "loom",
+        "note": "caught before commit"
+      }
+    ]
+  }
+]
