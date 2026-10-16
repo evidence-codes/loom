@@ -1,0 +1,35 @@
+{
+  "name": "loom",
+  "version": "0.4.0",
+  "description": "Design workflow toolkit for AI-built sites: review-grade screenshots, design adoption, learned house rules, safe previews. Layers on impeccable.",
+  "type": "module",
+  "bin": {
+    "loom": "bin/loom.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node test/run.mjs && node test/adopt.mjs && node test/learn.mjs && node test/adapters.mjs"
+  },
+  "license": "MIT",
+  "private": true,
+  "author": "Evidence Adejuwon",
+  "homepage": "https://github.com/evidence-codes/loom#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evidence-codes/loom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/evidence-codes/loom/issues"
+  },
+  "keywords": [
+    "design",
+    "screenshots",
+    "design-review",
+    "claude-code",
+    "design-system",
+    "impeccable",
+    "cli"
+  ]
+}
