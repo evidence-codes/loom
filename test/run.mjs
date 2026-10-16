@@ -25,6 +25,24 @@ const expect = [
   ["full page is true 390px wide", m.viewports[0].fullAnalysis[0].width === 390],
   ["fixed header hidden after first slice", m.viewports[0].fixedChromeHidden === 1 && m.viewports[0].slices === 2],
 ]
+// Scripted (rAF/GSAP-style) reveals: retried until visible; never-shown content: invalid.
+const cap = (name) => {
+  const o = mkdtempSync(join(tmpdir(), "loom-test-"))
+  let c = 0
+  try {
+    execFileSync("node", [join(root, "bin/loom.mjs"), "capture", "file://" + join(root, `test/fixtures/${name}.html`), "--viewports", "1440x900", "--out", o, "--quiet", "--no-full"], { stdio: "pipe" })
+  } catch (e) {
+    c = e.status
+  }
+  const man = JSON.parse(readFileSync(join(o, "manifest.json"), "utf8"))
+  rmSync(o, { recursive: true, force: true })
+  return { code: c, v: man.viewports[0] }
+}
+const late = cap("late-reveal")
+const blank = cap("blank")
+expect.push(["scripted reveal waited for (valid)", late.code === 0 && late.v.valid])
+expect.push(["never-shown first screen is invalid", blank.code === 2 && /content never appeared/.test(blank.v.warnings.join("\n"))])
+
 let failed = 0
 for (const [name, ok] of expect) {
   console.log(`${ok ? "ok  " : "FAIL"} ${name}`)

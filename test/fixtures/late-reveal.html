@@ -1,0 +1,4 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>late reveal</title>
+<style>body{margin:0;background:#0a0a0a;color:#eee;font:48px system-ui}main{opacity:0;padding:120px 40px}</style></head>
+<body><main id="m"><h1>Scripted reveal</h1><p>Shown by requestAnimationFrame after 2.5s, like a GSAP timeline.</p></main>
+<script>const t0=performance.now();(function f(){const k=Math.min(1,Math.max(0,(performance.now()-t0-2500)/400));document.getElementById('m').style.opacity=k;if(k<1)requestAnimationFrame(f)})()</script></body></html>
