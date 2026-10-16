@@ -10,6 +10,16 @@ curl -fsSL https://raw.githubusercontent.com/evidence-codes/loom/main/install.sh
 
 Then, in Claude Code: *"Use loom to redesign my landing page."* Or in a terminal, just type `loom`.
 
+## Before and now
+
+A portfolio redesigned with loom, both versions captured by `loom capture`. Before: the dark card-grid look most AI-built sites share. Now: a direction chosen from distinct options and built to pass an independent review. The hero is live WebGL.
+
+![Portfolio before (dark, minimal, card grid) and now (indigo resist-dyed cloth with a portrait set into one panel)](docs/media/portfolio-before-now-desktop.png)
+
+<p align="center"><img src="docs/media/portfolio-now-scroll.gif" alt="Scrolling through the redesigned portfolio" width="720"></p>
+
+Live at [evidence.codetribehq.com](https://evidence.codetribehq.com). Another build: [Margin](https://margin-notebook.vercel.app), a concept product page.
+
 ## Why
 
 - **AI-built sites converge on one look:** dark gradients, card grids, a glowing accent. The workflow commits each product to a distinct, reasoned direction instead.
