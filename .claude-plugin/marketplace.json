@@ -1,0 +1,8 @@
+{
+  "name": "loom",
+  "owner": { "name": "Evidence Adejuwon" },
+  "description": "Local marketplace for the loom design workflow plugin.",
+  "plugins": [
+    { "name": "loom", "source": "./", "description": "Design workflow toolkit: adopt, capture, learn." }
+  ]
+}

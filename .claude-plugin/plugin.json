@@ -1,0 +1,19 @@
+{
+  "name": "loom",
+  "displayName": "loom",
+  "version": "0.4.0",
+  "description": "Design workflow toolkit layered on impeccable: adopt existing projects, capture review-grade screenshots, and keep house rules learned from reviews.",
+  "author": {
+    "name": "Evidence Adejuwon"
+  },
+  "license": "MIT",
+  "keywords": [
+    "design",
+    "review",
+    "screenshots",
+    "design-system",
+    "impeccable"
+  ],
+  "homepage": "https://github.com/evidence-codes/loom",
+  "repository": "https://github.com/evidence-codes/loom"
+}
