@@ -1,12 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.5.0
 
 - **feat(agents)**: loom works in Cursor, Codex and Antigravity as well as Claude Code. `loom agents install` adds its skills as `loom-workflow`, `loom-adopt`, `loom-capture` and `loom-learn` to each agent's skills folder, or to a repo's with `--project`; `loom agents` shows what is installed where.
 - **feat(setup)**: `loom setup` installs the pinned impeccable into every agent on the machine, using the build impeccable ships for each one (with its reviewer and documenter agents in Cursor and Codex). `--agents` picks which.
 - **feat(installer)**: `install.sh` offers the other agents it finds, and gains `--no-agents` and `--no-impeccable`.
 - **feat(plugin)**: the skills no longer assume Claude Code: reviewer names per agent, a disclosed fallback where impeccable ships no reviewer agent, and a note on sandboxed shells.
 - **doctor** reports each agent's loom skills and impeccable.
+- **fix(capture)**: reveals driven by GSAP or other scripted animation are waited out instead of captured half-faded, and a first screen that is 90% one colour is now flagged invalid.
 
 ## 0.4.1
 
