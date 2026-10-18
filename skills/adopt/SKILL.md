@@ -7,7 +7,7 @@ description: Take over the design of an existing app or site. Scans it into an e
 
 This skill brings an existing project into the design workflow without throwing its current design away. The tool gathers the facts and you make the judgment calls. Never invent a design system the evidence doesn't show.
 
-The `loom` command is on the PATH while this plugin is enabled (and in the terminal after running `install.sh`). It needs Node 22 or later and Chrome, and installs no dependencies.
+The `loom` command is on the PATH once loom is installed: the Claude Code plugin adds it, and `install.sh` links it into `~/.local/bin` for every other agent and the terminal. It needs Node 22 or later and Chrome, and installs no dependencies.
 
 ## 1. Gather evidence
 
@@ -25,7 +25,7 @@ Read `adopt.md` in full before going further. If captures exist, look at the fir
 
 ## 2. Interview (one round)
 
-Use the structured question tool. Start from the report's "Questions for the interview", and keep it to 3–4 questions. Drop any question whose answer the evidence already gives with confidence; for those, ask the user to confirm instead.
+Use your harness's structured question tool if it has one; otherwise ask in a single message. Start from the report's "Questions for the interview", and keep it to 3–4 questions. Drop any question whose answer the evidence already gives with confidence; for those, ask the user to confirm instead.
 
 Always settle three things:
 - **Who it is for and what it is for.** Skip this if PRODUCT.md exists and is current.
