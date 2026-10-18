@@ -1,6 +1,6 @@
 {
   "name": "loom",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Design workflow toolkit for AI-built sites: review-grade screenshots, design adoption, learned house rules, safe previews. Layers on impeccable.",
   "type": "module",
   "bin": {
