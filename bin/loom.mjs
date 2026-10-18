@@ -9,7 +9,8 @@ import { doctor } from "../lib/doctor.mjs"
 import { runPreview, runAdapt } from "../lib/adapters/cli.mjs"
 import { guide } from "../lib/guide.mjs"
 import { report } from "../lib/report.mjs"
-import { findImpeccable, installImpeccable, IMPECCABLE_DISCLOSURE } from "../lib/setup.mjs"
+import { findImpeccable, installImpeccable, hasClaude, IMPECCABLE_DISCLOSURE } from "../lib/setup.mjs"
+import { AGENTS, detectAgents, parseAgents, installLoomSkills, findLoomSkills, findImpeccableFor, LOOM_SKILLS } from "../lib/agents.mjs"
 import { createInterface } from "node:readline/promises"
 import { spawn } from "node:child_process"
 import { readFileSync } from "node:fs"
@@ -20,7 +21,8 @@ const VERSION = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.u
 
 const TOP_HELP = `loom <command>
 
-  setup [--yes]          Install what loom needs (impeccable, pinned to a reviewed version)
+  setup [--agents LIST]  Install what loom needs (impeccable, pinned to a reviewed version)
+  agents [install]       Use loom in Cursor, Codex and Antigravity as well as Claude Code
   doctor                 Check this machine is ready (Node, Chrome, rules, skills)
   preview <dir>          Run a project safely and get a link (and screenshots with --capture)
   adapt <dir>            What loom knows about this project's stack, in plain language
@@ -174,31 +176,104 @@ async function runAdopt(argv) {
   process.exitCode = r.safety ? 3 : 0
 }
 
+const AGENTS_HELP = `loom agents [install] [options]
+
+Claude Code gets loom as a plugin (install.sh adds it). Cursor, Codex and
+Antigravity read plain skill folders: \`loom agents install\` copies loom's
+skills into each one's skills folder as ${LOOM_SKILLS.map((n) => `loom-${n}`).join(", ")}.
+\`loom agents\` on its own shows what is installed where.
+
+Options
+  --agents LIST         cursor, codex, antigravity or all  (default: the ones on this machine)
+  --project DIR         Install into DIR's own skills folders (.cursor/skills,
+                          .agents/skills, .agent/skills) instead of your user folders
+
+Then run \`loom setup\` to add impeccable to the same agents.
+`
+
+function opt(argv, name) {
+  const i = argv.indexOf(name)
+  if (i === -1) return undefined
+  if (argv[i + 1] === undefined || argv[i + 1].startsWith("--")) throw new Error(`${name} needs a value`)
+  return argv[i + 1]
+}
+
+async function confirm(question, argv) {
+  if (argv.includes("--yes") || !process.stdin.isTTY) return true
+  const rl = createInterface({ input: process.stdin, output: process.stdout })
+  const a = (await rl.question(question)).trim().toLowerCase()
+  rl.close()
+  return a !== "n" && a !== "no"
+}
+
+async function runAgents(argv) {
+  if (argv.includes("-h") || argv.includes("--help")) return console.log(AGENTS_HELP)
+  const project = opt(argv, "--project")
+  const listed = opt(argv, "--agents")
+  if (argv.includes("--found")) return console.log(detectAgents().map((id) => AGENTS[id].name).join(", "))
+  if (argv[0] !== "install") {
+    const found = detectAgents()
+    console.log(`${"Claude Code".padEnd(12)} ${hasClaude() ? "uses the loom plugin (claude plugin list shows it)" : "not found"}`)
+    for (const [id, a] of Object.entries(AGENTS)) {
+      if (!found.includes(id)) { console.log(`${a.name.padEnd(12)} not found`); continue }
+      const skills = findLoomSkills(id, { project })
+      const imp = findImpeccableFor(id, { project })
+      console.log(`${a.name.padEnd(12)} loom skills ${skills.length}/${LOOM_SKILLS.length}, impeccable ${imp ? imp.version : "missing"}`)
+    }
+    return console.log("\nloom agents install  adds loom's skills; loom setup adds impeccable.")
+  }
+  const ids = (listed ? parseAgents(listed) : detectAgents()).filter((id) => id !== "claude")
+  if (listed?.includes("claude")) console.log("Claude Code uses the loom plugin; install.sh adds it.")
+  if (!ids.length) return console.log(`No other coding agents found. Name one with --agents ${Object.keys(AGENTS).join(",")}.`)
+  for (const id of ids) {
+    console.log(`\n${AGENTS[id].name}`)
+    for (const r of installLoomSkills(id, { project })) {
+      console.log(`  ${r.state === "kept" ? "!" : "✓"} ${r.skill.padEnd(14)} ${r.state === "kept" ? `${r.dir} exists and isn't loom's; left alone` : `${r.state}: ${r.dir}`}`)
+    }
+    console.log(`  Try: ${AGENTS[id].ask} ("use loom to check my site"). Restart ${AGENTS[id].name} if the skills don't show.`)
+  }
+}
+
+async function runSetup(argv) {
+  const listed = opt(argv, "--agents")
+  const agents = listed ? parseAgents(listed) : [...(hasClaude() ? ["claude"] : []), ...detectAgents()]
+  if (!agents.length) {
+    console.error("No coding agent found. loom works in Claude Code, Cursor, Codex and Antigravity; install one, or name it with --agents.")
+    process.exitCode = 1
+    return
+  }
+  const name = (id) => (id === "claude" ? "Claude Code" : AGENTS[id].name)
+  const missing = []
+  for (const id of agents) {
+    const found = id === "claude" ? findImpeccable() : findImpeccableFor(id)
+    if (found) console.log(`impeccable ${found.version} is already in ${name(id)} (${found.how ?? "skill"}: ${found.where}).`)
+    else missing.push(id)
+  }
+  if (!missing.length) return console.log("Nothing to do.")
+  console.log(`\nloom uses impeccable for design directions, reviews and documentation. Adding it to ${missing.map(name).join(", ")}.\n`)
+  for (const l of IMPECCABLE_DISCLOSURE) console.log(`  ${l}`)
+  if (!(await confirm("\nInstall it now? [Y/n] ", argv))) return console.log("Skipped. Run `loom setup` any time.")
+  try {
+    const r = installImpeccable({ log: (m) => process.stderr.write(`  · ${m}\n`), agents: missing })
+    console.log("")
+    for (const x of r.results) {
+      if (x.state === "kept") console.log(`! ${name(x.agent)}: ${x.dir} exists and isn't loom's; left alone`)
+      else console.log(`✓ ${name(x.agent)}: impeccable ${x.version}${x.agent === "claude" ? "" : ` in ${x.dir}`}`)
+    }
+    console.log(`\nStart a new session in each agent${missing.includes("claude") ? " (or run /reload-plugins in Claude Code)" : ""} to use it.`)
+  } catch (e) {
+    console.error(`\n${e.message}`)
+    process.exitCode = 1
+  }
+}
+
 async function main(args = process.argv.slice(2)) {
   const [cmd, ...argv] = args
   if (!cmd && process.stdin.isTTY && process.stdout.isTTY) return guide((a) => main(a))
   if (!cmd || cmd === "-h" || cmd === "--help") return console.log(TOP_HELP)
   if (cmd === "-v" || cmd === "--version") return console.log(VERSION)
-  if (cmd === "setup") {
-    const found = findImpeccable()
-    if (found) return console.log(`impeccable ${found.version} is already installed (${found.how}: ${found.where}). Nothing to do.`)
-    console.log("loom uses impeccable for design directions, reviews and documentation.\n")
-    for (const l of IMPECCABLE_DISCLOSURE) console.log(`  ${l}`)
-    if (!argv.includes("--yes") && process.stdin.isTTY) {
-      const rl = createInterface({ input: process.stdin, output: process.stdout })
-      const a = (await rl.question("\nInstall it now? [Y/n] ")).trim().toLowerCase()
-      rl.close()
-      if (a === "n" || a === "no") return console.log("Skipped. Run `loom setup` any time.")
-    }
-    try {
-      const r = installImpeccable({ log: (m) => process.stderr.write(`  · ${m}\n`) })
-      console.log(`\nimpeccable ${r.version} installed. Start a new Claude Code session (or run /reload-plugins) to use it.`)
-    } catch (e) {
-      console.error(`\n${e.message}`)
-      process.exitCode = 1
-    }
-    return
-  }
+  if (cmd === "setup") return runSetup(argv)
+  if (cmd === "agents") return runAgents(argv)
   if (cmd === "doctor") {
     const rows = doctor()
     const mark = { ok: "✓", warn: "!", fail: "✗" }
