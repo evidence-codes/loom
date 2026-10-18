@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **feat(agents)**: loom works in Cursor, Codex and Antigravity as well as Claude Code. `loom agents install` adds its skills as `loom-workflow`, `loom-adopt`, `loom-capture` and `loom-learn` to each agent's skills folder, or to a repo's with `--project`; `loom agents` shows what is installed where.
+- **feat(setup)**: `loom setup` installs the pinned impeccable into every agent on the machine, using the build impeccable ships for each one (with its reviewer and documenter agents in Cursor and Codex). `--agents` picks which.
+- **feat(installer)**: `install.sh` offers the other agents it finds, and gains `--no-agents` and `--no-impeccable`.
+- **feat(plugin)**: the skills no longer assume Claude Code: reviewer names per agent, a disclosed fallback where impeccable ships no reviewer agent, and a note on sandboxed shells.
+- **doctor** reports each agent's loom skills and impeccable.
+
 ## 0.4.1
 
 - **fix(installer)**: `install.sh` was published empty in 0.4.0, so the one-line install did nothing. It is restored, and a new installer self-test runs the real script against a throwaway home.
