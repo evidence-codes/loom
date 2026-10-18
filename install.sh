@@ -6,18 +6,24 @@
 #
 # Options: --repo URL   where to get loom (default: this folder if it is a loom
 #                       checkout, otherwise https://github.com/evidence-codes/loom)
-#          --yes        don't ask before adding the Claude Code plugin
+#          --yes        don't ask before adding loom to your coding agents
 #          --no-plugin  skip the Claude Code plugin
+#          --no-agents  skip Cursor, Codex and Antigravity
+#          --no-impeccable  don't offer to install impeccable
 set -eu
 
 REPO=""
 YES=0
 PLUGIN=1
+AGENTS=1
+IMPECCABLE=1
 while [ $# -gt 0 ]; do
   case "$1" in
     --repo) REPO="$2"; shift 2 ;;
     --yes|-y) YES=1; shift ;;
     --no-plugin) PLUGIN=0; shift ;;
+    --no-agents) AGENTS=0; shift ;;
+    --no-impeccable) IMPECCABLE=0; shift ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
@@ -119,13 +125,31 @@ if [ "$PLUGIN" -eq 1 ] && command -v claude >/dev/null 2>&1; then
   esac
 fi
 
-if command -v claude >/dev/null 2>&1; then
+OTHERS=""
+[ "$AGENTS" -eq 1 ] && OTHERS=$("$TARGET" agents --found)
+if [ -n "$OTHERS" ]; then
+  step "Other coding agents"
+  ANSWER=y
+  if [ "$YES" -eq 0 ] && [ -t 0 ]; then
+    printf '  Add loom to %s too? [Y/n] ' "$OTHERS"
+    read -r ANSWER || ANSWER=y
+  fi
+  case "$ANSWER" in
+    n|N|no|No) say "  skipped; you can add it later with: loom agents install" ;;
+    *) "$TARGET" agents install || problem "couldn't add loom's skills; run: loom agents install" ;;
+  esac
+fi
+
+if [ "$IMPECCABLE" -eq 1 ] && { command -v claude >/dev/null 2>&1 || [ -n "$OTHERS" ]; }; then
   step "impeccable (the design engine loom builds on)"
-  if [ "$YES" -eq 1 ]; then "$TARGET" setup --yes || true; else "$TARGET" setup || true; fi
+  SETUP="setup"
+  [ -z "$OTHERS" ] && SETUP="setup --agents claude"
+  [ "$YES" -eq 1 ] && SETUP="$SETUP --yes"
+  "$TARGET" $SETUP || true
 fi
 
 step "Done"
 "$TARGET" doctor || true
 say ""
 say "  Start with:  loom        (a guided menu)"
-say "  Or ask Claude Code:  \"use loom to preview and review my site\""
+say "  Or ask your coding agent:  \"use loom to preview and review my site\""
