@@ -1,6 +1,6 @@
 # loom
 
-**A design workflow for sites built with AI.** loom helps Claude Code design websites that don't all look the same, checks them the way a visitor sees them, and learns from every review so the next project starts better.
+**A design workflow for sites built with AI.** loom helps your coding agent (Claude Code, Cursor, Codex or Antigravity) design websites that don't all look the same, checks them the way a visitor sees them, and learns from every review so the next project starts better.
 
 It layers on [impeccable](https://github.com/pbakaus/impeccable), which handles design directions, craft rules and independent review. loom adds the evidence around it: honest screenshots, a fast read of an existing project, safe previews, and memory.
 
@@ -8,7 +8,7 @@ It layers on [impeccable](https://github.com/pbakaus/impeccable), which handles 
 curl -fsSL https://raw.githubusercontent.com/evidence-codes/loom/main/install.sh | sh
 ```
 
-Then, in Claude Code: *"Use loom to redesign my landing page."* Or in a terminal, just type `loom`.
+Then, in your coding agent: *"Use loom to redesign my landing page."* Or in a terminal, just type `loom`.
 
 ## Before and now
 
@@ -31,7 +31,7 @@ Live at [evidence.codetribehq.com](https://evidence.codetribehq.com). Another bu
 ## What you need
 
 - macOS or Linux, [Node.js](https://nodejs.org) 22 or newer, and Google Chrome or Chromium.
-- [Claude Code](https://claude.com/claude-code) for the full workflow. The CLI works on its own.
+- A coding agent for the full workflow: [Claude Code](https://claude.com/claude-code), [Cursor](https://cursor.com), [Codex](https://developers.openai.com/codex) or [Antigravity](https://antigravity.google). The CLI works on its own.
 
 The installer checks all of this and says in plain English what's missing.
 
@@ -46,7 +46,8 @@ The installer:
 - links the `loom` command into `~/.local/bin`, with nothing installed system-wide and no npm;
 - loads the starter house rules;
 - adds the Claude Code plugin;
-- offers to install impeccable.
+- adds loom's skills to Cursor, Codex and Antigravity, if they're on the machine;
+- offers to install impeccable into each of them.
 
 It's safe to run again. To do the steps by hand:
 
@@ -54,20 +55,38 @@ It's safe to run again. To do the steps by hand:
 git clone https://github.com/evidence-codes/loom && cd loom && sh install.sh
 # or just the Claude Code plugin:
 claude plugin marketplace add evidence-codes/loom && claude plugin install loom@loom
+# or just the skills for other agents (add --project . to put them in one repo):
+loom agents install --agents cursor,codex,antigravity
+loom setup --agents cursor,codex,antigravity
 ```
 
-To uninstall: `claude plugin uninstall loom@loom` and `rm ~/.local/bin/loom`.
+To uninstall: `claude plugin uninstall loom@loom`, delete the `loom-*` skill folders listed by `loom agents`, and `rm ~/.local/bin/loom`.
+
+### Where loom goes in each agent
+
+| Agent | loom's skills | impeccable |
+|---|---|---|
+| Claude Code | the `loom` plugin | the `impeccable` plugin, with its hooks |
+| Cursor | `~/.cursor/skills/loom-*` | `~/.cursor/skills/impeccable`, reviewer and documenter in `~/.cursor/agents` |
+| Codex | `$CODEX_HOME/skills/loom-*` (`~/.codex/skills`) | `~/.codex/skills/impeccable`, reviewer and documenter inside it |
+| Antigravity | `~/.gemini/config/skills/loom-*` | `~/.gemini/config/skills/impeccable` |
+
+With `--project <dir>` the skills go in that repo's `.cursor/skills`, `.agents/skills` or `.agent/skills` instead, so a team gets them by cloning. loom only ever replaces folders it wrote itself.
+
+**What differs outside Claude Code.** The whole workflow runs in all four. impeccable's hooks, which run its detector after each edit, are per project in the other agents and aren't added. impeccable ships no reviewer agent for Antigravity, so there the finish review is a separate pass in the same session rather than a fresh agent, and the hand-off says so.
 
 ## Use it
 
-**In Claude Code**, ask in plain words, or use the skills directly:
+**In your coding agent**, ask in plain words, or use the skills directly:
 
-| Ask | Skill |
-|---|---|
-| "Use loom to redesign / build / take over my site" | `/loom:workflow`: the whole process, from first look to documented ship |
-| "Check my site's design" | `/loom:adopt` |
-| "Take review screenshots" | `/loom:capture` |
-| "Remember this for next time" | `/loom:learn` |
+| Ask | Claude Code | Cursor, Codex, Antigravity |
+|---|---|---|
+| "Use loom to redesign / build / take over my site" | `/loom:workflow` | `loom-workflow` |
+| "Check my site's design" | `/loom:adopt` | `loom-adopt` |
+| "Take review screenshots" | `/loom:capture` | `loom-capture` |
+| "Remember this for next time" | `/loom:learn` | `loom-learn` |
+
+`loom-workflow` is the whole process, from first look to documented ship. In Cursor type `/loom-workflow`, in Codex `$loom-workflow`; Antigravity picks the skill from what you ask.
 
 **In a terminal**, `loom` on its own opens a guided menu. The commands:
 
@@ -79,12 +98,14 @@ loom report ./my-site --open         # one readable page of everything loom foun
 loom capture https://example.com     # review-grade screenshots of any URL
 loom learn check ./my-site           # test against everything learned so far
 loom setup                           # install impeccable (pinned, reviewed version)
+loom agents                          # which coding agents have loom
+loom agents install                  # add loom's skills to Cursor, Codex, Antigravity
 loom doctor                          # is this machine ready?
 ```
 
 ## The workflow
 
-`/loom:workflow` runs these stages in order:
+`/loom:workflow` (`loom-workflow` outside Claude Code) runs these stages in order:
 
 1. **Safety.** Scan configs and installed packages before anything runs.
 2. **Know the project.** Adopt an existing site, or capture product facts for a new one.
