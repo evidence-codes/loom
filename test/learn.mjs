@@ -56,12 +56,22 @@ const v3Fix = project({
   "app/Hero.tsx": '<div className="bg-dip-6/55" />\n',
 })
 
+// Ledger writes through the CLI keep house-rules.md current.
+const rulesFile = () => readFileSync(join(home, "house-rules.md"), "utf8")
+const seededRules = rulesFile()
+console.log = () => {}
+await runLearn(["add", "--rule", "Rebuild test lesson.", "--id", "rebuild-test", "--category", "process"])
+const afterAdd = rulesFile()
+await runLearn(["retire", "rebuild-test"])
+const afterRetire = rulesFile()
+console.log = log
+
 // Promotion: a second project's sighting makes a provisional lesson standing.
 addEntry({ id: "framer-pathlength-kills-dashes", rule: readLedger().find((e) => e.id === "framer-pathlength-kills-dashes").rule, category: "motion", evidence: [{ project: "another-project" }] })
 const rules = compile(readLedger())
 
 const expect = [
-  ["seeds every starter lesson", readLedger().length === JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../lib/learn/seed.json"), "utf8")).length],
+  ["seeds every starter lesson", readLedger().filter((e) => e.id !== "rebuild-test").length === JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../lib/learn/seed.json"), "utf8")).length],
   ["font scope bug caught", ids(fontBug).includes("next-font-variable-on-html")],
   ["font scope fix clean", !ids(fontFix).includes("next-font-variable-on-html")],
   ["dashed pathLength bug caught", ids(dashBug).includes("framer-pathlength-kills-dashes")],
@@ -71,6 +81,9 @@ const expect = [
   ["v3 var-colour opacity caught", ids(v3Bug).includes("tailwind-v3-var-colour-opacity")],
   ["v3 hex colours clean", !ids(v3Fix).includes("tailwind-v3-var-colour-opacity")],
   ["second project promotes to standing", /\*\*Never animate pathLength[^\n]*standing; seen in landing-page-a, another-project/.test(rules)],
+  ["seed writes house rules", /Compiled by/.test(seededRules)],
+  ["add rebuilds house rules", afterAdd.includes("Rebuild test lesson.")],
+  ["retire rebuilds house rules", !afterRetire.includes("Rebuild test lesson.")],
   ["user-sourced lesson is standing", /Ask before installing[^\n]*\(standing/.test(rules)],
 ]
 let failed = 0
