@@ -66,12 +66,18 @@ await runLearn(["retire", "rebuild-test"])
 const afterRetire = rulesFile()
 console.log = log
 
+// Doctor flags house rules that lag the ledger, as a direct write leaves them.
+const { houseRules } = await import("../lib/doctor.mjs")
+const freshState = houseRules().state
+addEntry({ id: "stale-test", rule: "Stale test lesson.", category: "process" })
+const staleState = houseRules().state
+
 // Promotion: a second project's sighting makes a provisional lesson standing.
 addEntry({ id: "framer-pathlength-kills-dashes", rule: readLedger().find((e) => e.id === "framer-pathlength-kills-dashes").rule, category: "motion", evidence: [{ project: "another-project" }] })
 const rules = compile(readLedger())
 
 const expect = [
-  ["seeds every starter lesson", readLedger().filter((e) => e.id !== "rebuild-test").length === JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../lib/learn/seed.json"), "utf8")).length],
+  ["seeds every starter lesson", readLedger().filter((e) => !["rebuild-test", "stale-test"].includes(e.id)).length === JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../lib/learn/seed.json"), "utf8")).length],
   ["font scope bug caught", ids(fontBug).includes("next-font-variable-on-html")],
   ["font scope fix clean", !ids(fontFix).includes("next-font-variable-on-html")],
   ["dashed pathLength bug caught", ids(dashBug).includes("framer-pathlength-kills-dashes")],
@@ -84,6 +90,8 @@ const expect = [
   ["seed writes house rules", /Compiled by/.test(seededRules)],
   ["add rebuilds house rules", afterAdd.includes("Rebuild test lesson.")],
   ["retire rebuilds house rules", !afterRetire.includes("Rebuild test lesson.")],
+  ["doctor passes current house rules", freshState === "ok"],
+  ["doctor flags stale house rules", staleState === "warn"],
   ["user-sourced lesson is standing", /Ask before installing[^\n]*\(standing/.test(rules)],
 ]
 let failed = 0
