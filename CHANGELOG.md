@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1
+
+- **fix(learn)**: `add`, `retire` and `seed` recompile house rules, so new lessons are no longer left out until `loom learn rules` is run.
+- **doctor** warns when house rules are out of date with the ledger. If you recorded lessons before 0.5.1, run `loom learn rules` once.
+
 ## 0.5.0
 
 - **feat(agents)**: loom works in Cursor, Codex and Antigravity as well as Claude Code. `loom agents install` adds its skills as `loom-workflow`, `loom-adopt`, `loom-capture` and `loom-learn` to each agent's skills folder, or to a repo's with `--project`; `loom agents` shows what is installed where.
